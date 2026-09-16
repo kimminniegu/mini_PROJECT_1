@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 다이어리 속지 느낌의 배경과 테두리 -->
+<div class="diary-paper bg-[#FDFBF7] p-8 h-full overflow-y-auto rounded-r-2xl border-l border-[#d0c9b4] shadow-inner text-[#5D4037]">
+    
+    <!-- 페이지 타이틀 -->
+    <div class="border-b-2 border-dashed border-[#d0c9b4] pb-4 mb-6 flex justify-between items-end">
+        <div>
+            <h2 class="text-3xl font-bold tracking-wider" style="font-family: 'Courier New', Courier, monospace;">02 / HISTORY</h2>
+            <p class="text-[#8c826b] mt-2 text-sm">반복해서 사용하는 나의 이력 정보를 깔끔하게 모아두세요.</p>
+        </div>
+        <!-- 글로벌 퀵 메모 버튼 (README 명세 반영) -->
+        <button onclick="openQuickMemo()" class="bg-[#FFF9E6] border border-[#d0c9b4] text-[#5D4037] px-3 py-1 rounded-md shadow-sm hover:bg-[#F5F5DC] text-sm font-semibold transition">
+            ＋ 메모
+        </button>
+    </div>
+
+    <!-- 다이어리 인덱스 탭 메뉴 -->
+    <div class="flex space-x-1 mb-6 border-b-2 border-[#d0c9b4] overflow-x-auto pb-[-2px]">
+        <button onclick="switchTab('tab_profile')" id="btn_profile" class="history-tab active-tab px-4 py-2 bg-[#F5F5DC] text-[#5D4037] font-bold rounded-t-lg border-t border-l border-r border-[#d0c9b4]">기본정보</button>
+        <button onclick="switchTab('tab_education')" id="btn_education" class="history-tab px-4 py-2 bg-transparent text-[#8c826b] hover:bg-[#F5F5DC] font-bold rounded-t-lg">학력</button>
+        <button onclick="switchTab('tab_career')" id="btn_career" class="history-tab px-4 py-2 bg-transparent text-[#8c826b] hover:bg-[#F5F5DC] font-bold rounded-t-lg">경력</button>
+        <button onclick="switchTab('tab_certificate')" id="btn_certificate" class="history-tab px-4 py-2 bg-transparent text-[#8c826b] hover:bg-[#F5F5DC] font-bold rounded-t-lg">자격/어학</button>
+        <button onclick="switchTab('tab_activity')" id="btn_activity" class="history-tab px-4 py-2 bg-transparent text-[#8c826b] hover:bg-[#F5F5DC] font-bold rounded-t-lg">교육/대외활동</button>
+    </div>
+
+    <!-- 탭 콘텐츠 영역 -->
+    <div id="tab_contents" class="relative">
+        
+        <!-- 1. 기본정보 탭 -->
+        <div id="tab_profile" class="tab-pane block space-y-4">
+            <h3 class="text-xl font-bold mb-4 flex items-center"><span class="mr-2">👤</span> 내 기본정보</h3>
+            <div class="bg-white p-5 rounded-lg border border-[#e5e0d8] shadow-sm">
+                <form action="/history/profile" method="POST" class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">이름</label>
+                        <input type="text" name="name" placeholder="홍길동" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7] focus:outline-none focus:ring-1 focus:ring-[#5D4037]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">생년월일</label>
+                        <input type="text" name="birth_date" placeholder="예: 1990년" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7] focus:outline-none focus:ring-1 focus:ring-[#5D4037]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">휴대폰</label>
+                        <input type="text" name="phone" placeholder="010-0000-0000" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7] focus:outline-none focus:ring-1 focus:ring-[#5D4037]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">이메일</label>
+                        <input type="email" name="email" placeholder="example@email.com" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7] focus:outline-none focus:ring-1 focus:ring-[#5D4037]">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">주소</label>
+                        <input type="text" name="address" placeholder="서울특별시 OO구 OO동" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7] focus:outline-none focus:ring-1 focus:ring-[#5D4037]">
+                    </div>
+                    <div class="col-span-2 text-right mt-2">
+                        <button type="submit" class="bg-[#5D4037] text-white px-4 py-2 rounded shadow hover:bg-[#4a332c] transition">저장하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 2. 학력 탭 -->
+        <div id="tab_education" class="tab-pane hidden space-y-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center"><span class="mr-2">🎓</span> 학력 사항</h3>
+                <button class="bg-[#E8F5E9] border border-[#a5d6a7] text-[#2e7d32] px-3 py-1 rounded text-sm font-bold hover:bg-[#c8e6c9]">＋ 학력 추가</button>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg border border-[#e5e0d8] shadow-sm mb-4">
+                <form action="/history/education" method="POST" class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">학교구분</label>
+                        <select name="school_type" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7] focus:outline-none">
+                            <option value="high_school">고등학교</option>
+                            <option value="university" selected>대학교(4년제)</option>
+                            <option value="grad_school">대학원</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">학교명</label>
+                        <input type="text" name="school_name" placeholder="학교명 입력" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7]">
+                    </div>
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">전공(학과)</label>
+                        <input type="text" name="major" placeholder="예: 경영학과" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7]">
+                    </div>
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-sm font-bold text-[#8c826b] mb-1">학점</label>
+                        <input type="text" name="grade" placeholder="예: 4.0/4.5" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7]">
+                    </div>
+                    <div class="col-span-2 flex space-x-2">
+                        <div class="w-1/2">
+                            <label class="block text-sm font-bold text-[#8c826b] mb-1">입학일(년월)</label>
+                            <input type="text" name="start_date" placeholder="예: 2020.03" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7]">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-sm font-bold text-[#8c826b] mb-1">졸업일(년월)</label>
+                            <input type="text" name="end_date" placeholder="예: 2024.02" class="w-full border border-[#d0c9b4] rounded p-2 bg-[#FDFBF7]">
+                        </div>
+                    </div>
+                    <div class="col-span-2 text-right mt-2">
+                        <button type="submit" class="bg-[#5D4037] text-white px-4 py-2 rounded shadow hover:bg-[#4a332c] transition">추가하기</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-[#FFF9E6] p-4 rounded-lg border border-[#e5e0d8] shadow-sm relative">
+                    <span class="absolute top-4 right-4 text-xs font-bold bg-white px-2 py-1 border rounded text-[#8c826b]">졸업</span>
+                    <h4 class="font-bold text-lg text-[#5D4037]">한국대학교</h4>
+                    <p class="text-sm text-[#8c826b] mt-1">대학교(4년) | 경영학과</p>
+                    <p class="text-sm mt-2">2020.03 ~ 2024.02</p>
+                    <p class="text-sm font-bold mt-1 text-[#5D4037]">학점: 4.0/4.5</p>
+                    <div class="mt-4 flex space-x-2 text-sm">
+                        <button class="text-blue-600 hover:underline">수정</button>
+                        <button class="text-red-500 hover:underline">삭제</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 경력 탭 -->
+        <div id="tab_career" class="tab-pane hidden space-y-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center"><span class="mr-2">💼</span> 경력 사항</h3>
+                <button class="bg-[#E8F5E9] border border-[#a5d6a7] text-[#2e7d32] px-3 py-1 rounded text-sm font-bold hover:bg-[#c8e6c9]">＋ 경력 추가</button>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg border border-[#e5e0d8] shadow-sm relative mb-4">
+                <h4 class="font-bold text-lg text-[#5D4037]">(주)예시컴퍼니 <span class="text-sm font-normal text-gray-500 ml-2">재직중</span></h4>
+                <p class="text-sm text-[#8c826b] mt-1">영업부 | 사원 | 주요직무: 영업지원</p>
+                <p class="text-sm mt-2">2024.03 ~ 현재</p>
+                <div class="mt-2 p-3 bg-[#FDFBF7] rounded border border-[#e5e0d8] text-sm">
+                    <strong>담당 업무:</strong> 데이터 관리, 고객 응대, 서류 작성
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 자격증/어학 탭 -->
+        <div id="tab_certificate" class="tab-pane hidden space-y-4">
+             <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center"><span class="mr-2">📜</span> 자격증 및 어학</h3>
+                <button class="bg-[#E8F5E9] border border-[#a5d6a7] text-[#2e7d32] px-3 py-1 rounded text-sm font-bold hover:bg-[#c8e6c9]">＋ 추가</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-[#F5F5DC] p-4 rounded-lg border border-[#e5e0d8] shadow-sm">
+                    <span class="text-xs font-bold text-[#8c826b]">어학</span>
+                    <h4 class="font-bold text-lg mt-1 text-[#5D4037]">TOEIC 850점</h4>
+                    <p class="text-sm text-[#8c826b] mt-1">취득일: 2024.01</p>
+                </div>
+                <div class="bg-[#F5F5DC] p-4 rounded-lg border border-[#e5e0d8] shadow-sm">
+                    <span class="text-xs font-bold text-[#8c826b]">자격증</span>
+                    <h4 class="font-bold text-lg mt-1 text-[#5D4037]">컴퓨터활용능력 1급</h4>
+                    <p class="text-sm text-[#8c826b] mt-1">발급기관: 대한상공회의소 | 취득일: 2023.08</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 교육/대외활동/수상 탭 -->
+        <div id="tab_activity" class="tab-pane hidden space-y-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center"><span class="mr-2">🌱</span> 교육 및 대외활동</h3>
+                <button class="bg-[#E8F5E9] border border-[#a5d6a7] text-[#2e7d32] px-3 py-1 rounded text-sm font-bold hover:bg-[#c8e6c9]">＋ 내용 추가</button>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg border border-[#e5e0d8] shadow-sm relative mb-4">
+                <span class="absolute top-4 right-4 text-xs font-bold bg-[#E8F5E9] text-[#2e7d32] px-2 py-1 rounded">교육</span>
+                <h4 class="font-bold text-lg text-[#5D4037]">취업 역량 강화 캠프</h4>
+                <p class="text-sm text-[#8c826b] mt-1">OO아카데미</p>
+                <p class="text-sm mt-2 font-bold">2024.05 ~ 2024.06</p>
+                <div class="mt-2 text-sm text-gray-700 leading-relaxed">
+                    실무 역량 강화를 위한 프로젝트 진행 및 교육 이수
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+    function switchTab(tabId) {
+        const panes = document.querySelectorAll('.tab-pane');
+        panes.forEach(pane => pane.classList.add('hidden'));
+        
+        document.getElementById(tabId).classList.remove('hidden');
+        
+        const tabs = document.querySelectorAll('.history-tab');
+        tabs.forEach(tab => {
+            tab.classList.remove('bg-[#F5F5DC]', 'border-t', 'border-l', 'border-r', 'border-[#d0c9b4]');
+            tab.classList.add('bg-transparent');
+        });
+        
+        const activeBtn = document.getElementById(tabId.replace('tab_', 'btn_'));
+        activeBtn.classList.remove('bg-transparent');
+        activeBtn.classList.add('bg-[#F5F5DC]', 'border-t', 'border-l', 'border-r', 'border-[#d0c9b4]');
+    }
+</script>
+{% endblock %}
