@@ -13,13 +13,14 @@ DATABASE = "job_diary.db"
 def get_db():
     """데이터베이스 연결 객체를 생성하고 컬럼명 접근(Row)을 설정합니다."""
     conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row  # 컬럼명으로 데이터에 접근할 수 있게 해줌
+    conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
     """앱 실행 시 테이블이 없으면 자동 생성하는 함수 (README 및 각 파트 스키마 통합)"""
     with get_db() as conn:
+
         # 1. memos (글로벌 퀵 메모)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS memos (
@@ -170,23 +171,34 @@ def render_or_placeholder(template_name, page_index, title_text):
     서버 에러(TemplateNotFound) 없이 안내 화면을 띄워주는 안전 렌더러 함수입니다.
     """
     template_path = os.path.join(app.template_folder, template_name)
+
     if os.path.exists(template_path):
-        return render_template(template_name, page_index=page_index)
+        return render_template(
+            template_name,
+            page_index=page_index
+        )
 
     placeholder_html = f"""
     {{% extends "base.html" %}}
     {{% block content %}}
     <section class="bg-white/80 p-6 rounded-xl border border-stone-200 shadow-sm text-center">
         <h2 class="text-lg font-bold text-stone-700 mb-2">🚧 {title_text}</h2>
-        <p class="text-sm text-stone-500 mb-4">현재 담당 팀원이 <code>templates/{template_name}</code>을 작업 중입니다.</p>
+        <p class="text-sm text-stone-500 mb-4">
+            현재 담당 팀원이 <code>templates/{template_name}</code>을 작업 중입니다.
+        </p>
         <span class="inline-block text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold">
             식별 코드: [{page_index}]
         </span>
     </section>
     {{% endblock %}}
     """
+
     from flask import render_template_string
-    return render_template_string(placeholder_html, page_index=page_index)
+
+    return render_template_string(
+        placeholder_html,
+        page_index=page_index
+    )
 
 
 # ==========================================
@@ -195,8 +207,9 @@ def render_or_placeholder(template_name, page_index, title_text):
 @app.route("/")
 def home():
     """메인 대시보드 화면: 취준 현황 요약, 오늘의 TODO 목록 제공"""
+
     today_str = datetime.today().strftime("%Y.%m.%d")
-    
+
     todo_count = 0
     saved_jobs_count = 0
     upcoming_deadline_count = 0
@@ -204,37 +217,82 @@ def home():
 
     try:
         with get_db() as conn:
+
             # 1) TODO 미완료 개수
-            todo_row = conn.execute("SELECT COUNT(*) FROM todos WHERE is_done = 0").fetchone()
+            todo_row = conn.execute(
+                "SELECT COUNT(*) FROM todos WHERE is_done = 0"
+            ).fetchone()
+
             todo_count = todo_row[0] if todo_row else 0
 
             # 2) 저장된 채용공고 총 개수
-            jobs_row = conn.execute("SELECT COUNT(*) FROM jobs").fetchone()
+            jobs_row = conn.execute(
+                "SELECT COUNT(*) FROM jobs"
+            ).fetchone()
+
             saved_jobs_count = jobs_row[0] if jobs_row else 0
 
             # 3) 다가오는 마감(D-Day 7일 이내)
             deadline_row = conn.execute(
-                "SELECT COUNT(*) FROM jobs WHERE deadline >= date('now') AND deadline <= date('now', '+7 days')"
+                """
+                SELECT COUNT(*)
+                FROM jobs
+                WHERE deadline >= date('now')
+                AND deadline <= date('now', '+7 days')
+                """
             ).fetchone()
-            upcoming_deadline_count = deadline_row[0] if deadline_row else 0
+
+            upcoming_deadline_count = (
+                deadline_row[0]
+                if deadline_row
+                else 0
+            )
 
             # 4) 오늘의 TODO 목록
-            today_todos = conn.execute("SELECT * FROM todos WHERE due_date = date('now') LIMIT 5").fetchall()
+            today_todos = conn.execute(
+                """
+                SELECT *
+                FROM todos
+                WHERE due_date = date('now')
+                LIMIT 5
+                """
+            ).fetchall()
+
     except sqlite3.OperationalError:
         init_db()
 
     # 등록된 할 일이 없을 때 보여줄 기본 예시 데이터
     if not today_todos:
         today_todos = [
-            {"id": 1, "title": "자기소개서 작성", "is_done": 0},
-            {"id": 2, "title": "기업 분석", "is_done": 0},
-            {"id": 3, "title": "채용공고 확인", "is_done": 0}
+            {
+                "id": 1,
+                "title": "자기소개서 작성",
+                "is_done": 0
+            },
+            {
+                "id": 2,
+                "title": "기업 분석",
+                "is_done": 0
+            },
+            {
+                "id": 3,
+                "title": "채용공고 확인",
+                "is_done": 0
+            }
         ]
 
     summary = {
         "todo_count": todo_count if todo_count > 0 else 3,
-        "saved_jobs_count": saved_jobs_count if saved_jobs_count > 0 else 8,
-        "upcoming_deadline_count": upcoming_deadline_count if upcoming_deadline_count > 0 else 2
+        "saved_jobs_count": (
+            saved_jobs_count
+            if saved_jobs_count > 0
+            else 8
+        ),
+        "upcoming_deadline_count": (
+            upcoming_deadline_count
+            if upcoming_deadline_count > 0
+            else 2
+        )
     }
 
     return render_template(
@@ -252,38 +310,85 @@ def home():
 @app.route("/history")
 def history():
     """HISTORY 메인 화면: DB에서 데이터를 불러와 화면에 전달"""
+
     with get_db() as conn:
-        profile = conn.execute("SELECT * FROM resume_profiles ORDER BY id DESC LIMIT 1").fetchone()
-        educations = conn.execute("SELECT * FROM educations ORDER BY id DESC").fetchall()
-        
-    template_path = os.path.join(app.template_folder, "history.html")
+        profile = conn.execute(
+            """
+            SELECT *
+            FROM resume_profiles
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        ).fetchone()
+
+        educations = conn.execute(
+            """
+            SELECT *
+            FROM educations
+            ORDER BY id DESC
+            """
+        ).fetchall()
+
+    template_path = os.path.join(
+        app.template_folder,
+        "history.html"
+    )
+
     if os.path.exists(template_path):
-        return render_template("history.html", profile=profile, educations=educations, page_index="02 HISTORY")
-    return render_or_placeholder("history.html", "02 HISTORY", "02 HISTORY / 이력관리")
+        return render_template(
+            "history.html",
+            profile=profile,
+            educations=educations,
+            page_index="02 HISTORY"
+        )
+
+    return render_or_placeholder(
+        "history.html",
+        "02 HISTORY",
+        "02 HISTORY / 이력관리"
+    )
 
 
 @app.route("/history/profile", methods=["POST"])
 def save_profile():
     """기본정보 폼 제출 시 DB에 저장"""
+
     name = request.form.get("name")
     birth_date = request.form.get("birth_date")
     phone = request.form.get("phone")
     email = request.form.get("email")
     address = request.form.get("address")
-    
+
     with get_db() as conn:
-        conn.execute("""
-            INSERT INTO resume_profiles (name, birth_date, phone, email, address)
+        conn.execute(
+            """
+            INSERT INTO resume_profiles (
+                name,
+                birth_date,
+                phone,
+                email,
+                address
+            )
             VALUES (?, ?, ?, ?, ?)
-        """, (name, birth_date, phone, email, address))
+            """,
+            (
+                name,
+                birth_date,
+                phone,
+                email,
+                address
+            )
+        )
+
         conn.commit()
-        
+
     return redirect(url_for("history"))
 
 
 @app.route("/history/education", methods=["POST"])
 def add_education():
     """학력 폼 제출 시 DB에 추가"""
+
     school_type = request.form.get("school_type")
     school_name = request.form.get("school_name")
     major = request.form.get("major")
@@ -292,40 +397,155 @@ def add_education():
     end_date = request.form.get("end_date")
 
     with get_db() as conn:
-        conn.execute("""
-            INSERT INTO educations (school_type, school_name, major, grade, start_date, end_date)
+        conn.execute(
+            """
+            INSERT INTO educations (
+                school_type,
+                school_name,
+                major,
+                grade,
+                start_date,
+                end_date
+            )
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (school_type, school_name, major, grade, start_date, end_date))
+            """,
+            (
+                school_type,
+                school_name,
+                major,
+                grade,
+                start_date,
+                end_date
+            )
+        )
+
         conn.commit()
-        
+
     return redirect(url_for("history"))
 
 
 # ==========================================
-# 01, 03, 04, 05. 서브 기능 라우트 (해당 팀원 작업 영역)
+# 01, 03, 04, 05. 서브 기능 라우트
 # ==========================================
 @app.route("/calendar")
 def calendar():
     """01 TODO / CALENDAR 담당 팀원 브랜치 연동 영역"""
-    return render_or_placeholder("calendar.html", "01 TODO", "01 TODO / CALENDAR")
+
+    return render_or_placeholder(
+        "calendar.html",
+        "01 TODO",
+        "01 TODO / CALENDAR"
+    )
 
 
 @app.route("/review")
 def review():
     """03 REVIEW 담당 팀원 브랜치 연동 영역"""
-    return render_or_placeholder("review.html", "03 REVIEW", "03 REVIEW / 내용복기")
+
+    return render_or_placeholder(
+        "review.html",
+        "03 REVIEW",
+        "03 REVIEW / 내용복기"
+    )
 
 
-@app.route("/jobs")
+# ==========================================
+# [04 JOBS 수정]
+# 채용공고 등록(Create) + 목록 조회(Read)
+# ==========================================
+@app.route("/jobs", methods=["GET", "POST"])
 def jobs():
-    """04 JOBS 담당 팀원 브랜치 연동 영역"""
-    return render_or_placeholder("jobs.html", "04 JOBS", "04 JOB POSTING / 채용공고")
+    """04 JOBS - 채용공고 등록 및 목록 조회"""
+
+    # 공고 등록 요청
+    if request.method == "POST":
+
+        company_name = request.form.get("company_name")
+        job_title = request.form.get("job_title")
+        position = request.form.get("position")
+        job_category = request.form.get("job_category")
+        location = request.form.get("location")
+        job_url = request.form.get("job_url")
+        posted_date = request.form.get("posted_date")
+        deadline = request.form.get("deadline")
+        status = request.form.get("status", "관심")
+        memo = request.form.get("memo")
+
+        # 체크박스가 선택되면 1, 아니면 0
+        is_favorite = (
+            1
+            if request.form.get("is_favorite")
+            else 0
+        )
+
+        with get_db() as conn:
+
+            conn.execute(
+                """
+                INSERT INTO jobs (
+                    company_name,
+                    job_title,
+                    position,
+                    job_category,
+                    location,
+                    job_url,
+                    posted_date,
+                    deadline,
+                    status,
+                    is_favorite,
+                    memo
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    company_name,
+                    job_title,
+                    position,
+                    job_category,
+                    location,
+                    job_url,
+                    posted_date,
+                    deadline,
+                    status,
+                    is_favorite,
+                    memo
+                )
+            )
+
+            conn.commit()
+
+        # 새로고침 시 중복 등록되는 것을 막기 위해 redirect
+        return redirect(
+            url_for("jobs")
+        )
+
+    # 저장된 채용공고 목록 조회
+    with get_db() as conn:
+
+        job_list = conn.execute(
+            """
+            SELECT *
+            FROM jobs
+            ORDER BY created_at DESC
+            """
+        ).fetchall()
+
+    return render_template(
+        "jobs.html",
+        jobs=job_list,
+        page_index="04 JOBS"
+    )
 
 
 @app.route("/ai")
 def ai():
     """05 AI 담당 팀원 브랜치 연동 영역"""
-    return render_or_placeholder("ai.html", "05 AI", "05 AI / AI 도우미")
+
+    return render_or_placeholder(
+        "ai.html",
+        "05 AI",
+        "05 AI / AI 도우미"
+    )
 
 
 # ==========================================
@@ -334,23 +554,56 @@ def ai():
 @app.route("/api/memos", methods=["POST"])
 def save_quick_memo():
     """모든 페이지에서 호출하는 글로벌 퀵 메모 저장 엔드포인트"""
-    data = request.get_json() if request.is_json else request.form
-    page_index = data.get("page_index", "00 HOME")
-    content = data.get("content", "").strip()
+
+    data = (
+        request.get_json()
+        if request.is_json
+        else request.form
+    )
+
+    page_index = data.get(
+        "page_index",
+        "00 HOME"
+    )
+
+    content = data.get(
+        "content",
+        ""
+    ).strip()
 
     if not content:
-        return jsonify({"success": False, "message": "내용을 입력해주세요."}), 400
+        return jsonify({
+            "success": False,
+            "message": "내용을 입력해주세요."
+        }), 400
 
     with get_db() as conn:
+
         conn.execute(
-            "INSERT INTO memos (page_index, content) VALUES (?, ?)",
-            (page_index, content)
+            """
+            INSERT INTO memos (
+                page_index,
+                content
+            )
+            VALUES (?, ?)
+            """,
+            (
+                page_index,
+                content
+            )
         )
+
         conn.commit()
 
-    return jsonify({"success": True, "message": "메모가 성공적으로 저장되었습니다."})
+    return jsonify({
+        "success": True,
+        "message": "메모가 성공적으로 저장되었습니다."
+    })
 
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True, port=5000)
+    app.run(
+        debug=True,
+        port=5000
+    )
