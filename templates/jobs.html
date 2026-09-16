@@ -2,6 +2,10 @@
 
 {% block content %}
 
+<!-- =========================================
+     04 JOB POSTING
+     ========================================= -->
+
 <!-- 페이지 제목 -->
 <section class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
     <div>
@@ -21,15 +25,20 @@
     <button
         type="button"
         onclick="openJobModal()"
-        class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold
-               px-4 py-2 rounded-lg shadow-sm transition"
+        class="bg-emerald-700 hover:bg-emerald-800 text-white
+               text-xs font-bold px-4 py-2 rounded-lg
+               shadow-sm transition"
     >
         ＋ 공고 추가
     </button>
 </section>
 
 
-<!-- 검색창 -->
+<!-- =========================================
+     검색 영역
+     현재는 UI만 구성
+     검색 기능은 다음 단계에서 Flask와 연결
+     ========================================= -->
 <section class="bg-white/80 border border-stone-200 rounded-xl p-4 shadow-sm">
 
     <div class="flex flex-col sm:flex-row gap-2">
@@ -38,14 +47,17 @@
             type="text"
             id="job-search-input"
             placeholder="기업명 또는 직무를 검색해주세요."
-            class="flex-1 text-sm px-3 py-2 rounded-lg border border-stone-300
-                   bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            class="flex-1 text-sm px-3 py-2 rounded-lg
+                   border border-stone-300 bg-white
+                   focus:outline-none focus:ring-1
+                   focus:ring-emerald-500"
         >
 
         <button
             type="button"
             class="px-4 py-2 text-xs font-bold rounded-lg
-                   bg-stone-700 hover:bg-stone-800 text-white transition"
+                   bg-stone-700 hover:bg-stone-800
+                   text-white transition"
         >
             🔍 검색
         </button>
@@ -55,21 +67,25 @@
 </section>
 
 
-<!-- 직무 필터 -->
+<!-- =========================================
+     직무 필터
+     현재는 UI만 구성
+     ========================================= -->
 <section>
     <div class="flex flex-wrap gap-2">
 
         <button
             type="button"
-            class="job-filter-button bg-emerald-700 text-white
-                   text-xs font-semibold px-3 py-1.5 rounded-full"
+            class="bg-emerald-700 text-white
+                   text-xs font-semibold
+                   px-3 py-1.5 rounded-full"
         >
             전체
         </button>
 
         <button
             type="button"
-            class="job-filter-button bg-stone-100 hover:bg-emerald-50
+            class="bg-stone-100 hover:bg-emerald-50
                    border border-stone-200 text-stone-600
                    text-xs px-3 py-1.5 rounded-full transition"
         >
@@ -78,7 +94,7 @@
 
         <button
             type="button"
-            class="job-filter-button bg-stone-100 hover:bg-emerald-50
+            class="bg-stone-100 hover:bg-emerald-50
                    border border-stone-200 text-stone-600
                    text-xs px-3 py-1.5 rounded-full transition"
         >
@@ -87,7 +103,7 @@
 
         <button
             type="button"
-            class="job-filter-button bg-stone-100 hover:bg-emerald-50
+            class="bg-stone-100 hover:bg-emerald-50
                    border border-stone-200 text-stone-600
                    text-xs px-3 py-1.5 rounded-full transition"
         >
@@ -96,7 +112,7 @@
 
         <button
             type="button"
-            class="job-filter-button bg-stone-100 hover:bg-emerald-50
+            class="bg-stone-100 hover:bg-emerald-50
                    border border-stone-200 text-stone-600
                    text-xs px-3 py-1.5 rounded-full transition"
         >
@@ -105,7 +121,7 @@
 
         <button
             type="button"
-            class="job-filter-button bg-stone-100 hover:bg-emerald-50
+            class="bg-stone-100 hover:bg-emerald-50
                    border border-stone-200 text-stone-600
                    text-xs px-3 py-1.5 rounded-full transition"
         >
@@ -116,143 +132,207 @@
 </section>
 
 
-<!-- 채용공고 목록 -->
+<!-- =========================================
+     저장된 채용공고 목록
+     app.py에서 전달받은 jobs 사용
+     ========================================= -->
 <section class="space-y-3">
 
-    <!-- 임시 카드 1 -->
-    <article
-        class="bg-white/80 border border-stone-200 rounded-xl
-               p-4 shadow-sm hover:shadow-md transition"
-    >
+    {% if jobs %}
 
-        <!-- 카드 상단 -->
-        <div class="flex justify-between items-start gap-3">
+        {% for job in jobs %}
 
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="text-amber-500">⭐</span>
+        <article
+            class="bg-white/80 border border-stone-200
+                   rounded-xl p-4 shadow-sm
+                   hover:shadow-md transition"
+        >
 
-                    <h3 class="font-bold text-stone-800">
-                        A기업
-                    </h3>
+            <!-- 카드 상단 -->
+            <div class="flex justify-between items-start gap-3">
+
+                <div>
+
+                    <div class="flex items-center gap-2">
+
+                        {% if job["is_favorite"] %}
+                            <span class="text-amber-500">
+                                ⭐
+                            </span>
+                        {% else %}
+                            <span class="text-stone-300">
+                                ☆
+                            </span>
+                        {% endif %}
+
+                        <h3 class="font-bold text-stone-800">
+                            {{ job["company_name"] }}
+                        </h3>
+
+                    </div>
+
+                    <p class="text-sm font-semibold text-stone-700 mt-1">
+                        {{ job["job_title"] }}
+                    </p>
+
+                    {% if job["job_category"] %}
+                    <span
+                        class="inline-block mt-2 text-[11px]
+                               bg-emerald-50 border border-emerald-200
+                               text-emerald-700
+                               px-2 py-0.5 rounded-full"
+                    >
+                        {{ job["job_category"] }}
+                    </span>
+                    {% endif %}
+
                 </div>
 
-                <p class="text-sm font-semibold text-stone-700 mt-1">
-                    해외영업 신입 채용
-                </p>
+
+                <!-- 관심 표시
+                     현재는 DB 값을 화면에 표시만 함.
+                     클릭 저장 기능은 다음 단계에서 연결 -->
+                <button
+                    type="button"
+                    class="text-xl
+                    {% if job['is_favorite'] %}
+                        text-rose-400
+                    {% else %}
+                        text-stone-300
+                    {% endif %}"
+                    aria-label="관심 공고"
+                >
+                    {% if job["is_favorite"] %}
+                        ♥
+                    {% else %}
+                        ♡
+                    {% endif %}
+                </button>
+
             </div>
 
-            <button
-                type="button"
-                class="favorite-button text-xl text-rose-400
-                       hover:scale-110 transition"
-                onclick="toggleFavorite(this)"
-                aria-label="관심 공고"
+
+            <!-- 공고 기본 정보 -->
+            <div
+                class="grid grid-cols-1 sm:grid-cols-2
+                       gap-x-4 gap-y-3 mt-4
+                       text-xs text-stone-600"
             >
-                ♡
-            </button>
 
-        </div>
+                <div>
+                    <span class="font-semibold text-stone-500">
+                        지원 직무
+                    </span>
 
-
-        <!-- 카드 내용 -->
-        <div
-            class="grid grid-cols-1 sm:grid-cols-2
-                   gap-x-4 gap-y-2 mt-4
-                   text-xs text-stone-600"
-        >
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    지원 직무
-                </span>
-                <br>
-                해외영업
-            </p>
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    근무지
-                </span>
-                <br>
-                서울
-            </p>
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    등록일
-                </span>
-                <br>
-                2026-09-10
-            </p>
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    지원 마감일
-                </span>
-                <br>
-                2026-09-30
-            </p>
-
-        </div>
+                    <p class="mt-0.5">
+                        {{ job["position"] or "-" }}
+                    </p>
+                </div>
 
 
-        <!-- D-Day -->
-        <div
-            class="mt-4 bg-amber-50 border border-amber-200
-                   rounded-lg px-3 py-2
-                   flex items-center justify-between"
-        >
-            <span class="text-xs text-stone-600">
-                지원 마감까지
-            </span>
+                <div>
+                    <span class="font-semibold text-stone-500">
+                        근무지
+                    </span>
 
-            <span class="text-sm font-bold text-amber-800">
-                D-14
-            </span>
-        </div>
+                    <p class="mt-0.5">
+                        {{ job["location"] or "-" }}
+                    </p>
+                </div>
 
 
-        <!-- 카드 하단 -->
-        <div
-            class="mt-4 pt-3 border-t border-stone-200
-                   flex flex-col md:flex-row
-                   md:items-center md:justify-between gap-3"
-        >
+                <div>
+                    <span class="font-semibold text-stone-500">
+                        공고 등록일
+                    </span>
+
+                    <p class="mt-0.5">
+                        {{ job["posted_date"] or "-" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <span class="font-semibold text-stone-500">
+                        지원 마감일
+                    </span>
+
+                    <p class="mt-0.5 font-semibold text-amber-800">
+                        {{ job["deadline"] or "-" }}
+                    </p>
+                </div>
+
+            </div>
+
 
             <!-- 지원 상태 -->
-            <select
-                class="text-xs border border-stone-300
-                       rounded-lg px-2 py-2
-                       bg-white text-stone-700
-                       focus:outline-none focus:ring-1
-                       focus:ring-emerald-500"
+            <div
+                class="mt-4 bg-emerald-50/70
+                       border border-emerald-200
+                       rounded-lg px-3 py-2
+                       flex items-center justify-between"
             >
-                <option value="interest">관심</option>
-                <option value="planned" selected>지원 예정</option>
-                <option value="applied">지원 완료</option>
-                <option value="document_pass">서류 합격</option>
-                <option value="interview">면접 진행</option>
-                <option value="final_pass">최종 합격</option>
-                <option value="failed">불합격</option>
-            </select>
+
+                <span class="text-xs text-stone-500">
+                    지원 상태
+                </span>
+
+                <span class="text-xs font-bold text-emerald-800">
+                    {{ job["status"] or "관심" }}
+                </span>
+
+            </div>
 
 
-            <!-- 액션 -->
-            <div class="flex flex-wrap gap-2">
+            <!-- 메모 -->
+            {% if job["memo"] %}
+
+            <div
+                class="mt-3 bg-amber-50/50
+                       border border-amber-200/70
+                       rounded-lg px-3 py-2"
+            >
+
+                <p class="text-[11px] font-semibold text-amber-800">
+                    📝 MEMO
+                </p>
+
+                <p class="text-xs text-stone-600 mt-1 leading-relaxed">
+                    {{ job["memo"] }}
+                </p>
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- 카드 하단 -->
+            <div
+                class="mt-4 pt-3 border-t border-stone-200
+                       flex flex-col sm:flex-row
+                       sm:items-center sm:justify-end gap-2"
+            >
+
+                {% if job["job_url"] %}
 
                 <a
-                    href="#"
+                    href="{{ job['job_url'] }}"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="text-xs px-3 py-1.5 rounded-lg
-                           bg-emerald-50 hover:bg-emerald-100
+                    class="text-xs text-center px-3 py-1.5
+                           rounded-lg bg-emerald-50
+                           hover:bg-emerald-100
                            border border-emerald-200
-                           text-emerald-800 font-semibold transition"
+                           text-emerald-800
+                           font-semibold transition"
                 >
                     공고 보기 ↗
                 </a>
 
+                {% endif %}
+
+
+                <!-- 수정/삭제는 다음 단계에서 DB와 연결 -->
                 <button
                     type="button"
                     class="text-xs px-3 py-1.5 rounded-lg
@@ -262,6 +342,7 @@
                 >
                     수정
                 </button>
+
 
                 <button
                     type="button"
@@ -275,194 +356,58 @@
 
             </div>
 
-        </div>
+        </article>
 
-    </article>
+        {% endfor %}
 
 
-    <!-- 임시 카드 2 -->
-    <article
-        class="bg-white/80 border border-stone-200 rounded-xl
-               p-4 shadow-sm hover:shadow-md transition"
-    >
+    {% else %}
 
-        <div class="flex justify-between items-start gap-3">
+        <!-- 저장된 채용공고가 하나도 없을 때 -->
+        <section
+            class="bg-stone-50
+                   border border-dashed border-stone-300
+                   rounded-xl p-8 text-center"
+        >
 
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="text-stone-300">☆</span>
+            <p class="text-3xl">
+                📭
+            </p>
 
-                    <h3 class="font-bold text-stone-800">
-                        B기업
-                    </h3>
-                </div>
+            <p class="text-sm font-semibold text-stone-600 mt-2">
+                저장된 채용공고가 없습니다.
+            </p>
 
-                <p class="text-sm font-semibold text-stone-700 mt-1">
-                    글로벌 물류 운영 채용
-                </p>
-            </div>
+            <p class="text-xs text-stone-400 mt-1">
+                관심 있는 공고를 추가해보세요.
+            </p>
 
             <button
                 type="button"
-                class="favorite-button text-xl text-stone-300
-                       hover:text-rose-400 hover:scale-110 transition"
-                onclick="toggleFavorite(this)"
-                aria-label="관심 공고"
+                onclick="openJobModal()"
+                class="mt-4 bg-emerald-700
+                       hover:bg-emerald-800
+                       text-white text-xs font-semibold
+                       px-4 py-2 rounded-lg transition"
             >
-                ♡
+                ＋ 첫 공고 추가하기
             </button>
 
-        </div>
+        </section>
 
-
-        <div
-            class="grid grid-cols-1 sm:grid-cols-2
-                   gap-x-4 gap-y-2 mt-4
-                   text-xs text-stone-600"
-        >
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    지원 직무
-                </span>
-                <br>
-                물류
-            </p>
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    근무지
-                </span>
-                <br>
-                인천
-            </p>
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    등록일
-                </span>
-                <br>
-                2026-09-08
-            </p>
-
-            <p>
-                <span class="font-semibold text-stone-500">
-                    지원 마감일
-                </span>
-                <br>
-                2026-10-05
-            </p>
-
-        </div>
-
-
-        <div
-            class="mt-4 bg-emerald-50 border border-emerald-200
-                   rounded-lg px-3 py-2
-                   flex items-center justify-between"
-        >
-            <span class="text-xs text-stone-600">
-                지원 마감까지
-            </span>
-
-            <span class="text-sm font-bold text-emerald-800">
-                D-19
-            </span>
-        </div>
-
-
-        <div
-            class="mt-4 pt-3 border-t border-stone-200
-                   flex flex-col md:flex-row
-                   md:items-center md:justify-between gap-3"
-        >
-
-            <select
-                class="text-xs border border-stone-300
-                       rounded-lg px-2 py-2
-                       bg-white text-stone-700
-                       focus:outline-none focus:ring-1
-                       focus:ring-emerald-500"
-            >
-                <option value="interest" selected>관심</option>
-                <option value="planned">지원 예정</option>
-                <option value="applied">지원 완료</option>
-                <option value="document_pass">서류 합격</option>
-                <option value="interview">면접 진행</option>
-                <option value="final_pass">최종 합격</option>
-                <option value="failed">불합격</option>
-            </select>
-
-
-            <div class="flex flex-wrap gap-2">
-
-                <a
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-xs px-3 py-1.5 rounded-lg
-                           bg-emerald-50 hover:bg-emerald-100
-                           border border-emerald-200
-                           text-emerald-800 font-semibold transition"
-                >
-                    공고 보기 ↗
-                </a>
-
-                <button
-                    type="button"
-                    class="text-xs px-3 py-1.5 rounded-lg
-                           bg-stone-100 hover:bg-stone-200
-                           border border-stone-200
-                           text-stone-600 transition"
-                >
-                    수정
-                </button>
-
-                <button
-                    type="button"
-                    class="text-xs px-3 py-1.5 rounded-lg
-                           bg-rose-50 hover:bg-rose-100
-                           border border-rose-200
-                           text-rose-600 transition"
-                >
-                    삭제
-                </button>
-
-            </div>
-
-        </div>
-
-    </article>
+    {% endif %}
 
 </section>
 
 
-<!-- 공고가 없을 때 사용할 영역 -->
-<section
-    id="empty-job-message"
-    class="hidden bg-stone-50 border border-dashed border-stone-300
-           rounded-xl p-8 text-center"
->
-    <p class="text-3xl">
-        📭
-    </p>
-
-    <p class="text-sm font-semibold text-stone-600 mt-2">
-        저장된 채용공고가 없습니다.
-    </p>
-
-    <p class="text-xs text-stone-400 mt-1">
-        관심 있는 공고를 추가해보세요.
-    </p>
-</section>
-
-
-<!-- 채용공고 추가 모달 -->
+<!-- =========================================
+     채용공고 추가 모달
+     ========================================= -->
 <div
     id="job-modal"
-    class="hidden fixed inset-0 bg-stone-900/40
-           backdrop-blur-sm z-40
-           flex items-center justify-center p-4"
+    class="hidden fixed inset-0
+           bg-stone-900/40 backdrop-blur-sm
+           z-40 flex items-center justify-center p-4"
 >
 
     <div
@@ -472,10 +417,11 @@
                shadow-2xl p-5"
     >
 
-        <!-- 모달 제목 -->
+        <!-- 모달 헤더 -->
         <div class="flex justify-between items-center mb-4">
 
             <div>
+
                 <p class="text-xs font-bold text-emerald-700">
                     JOB POSTING
                 </p>
@@ -483,12 +429,16 @@
                 <h3 class="font-bold text-stone-800 mt-1">
                     💼 채용공고 추가
                 </h3>
+
             </div>
+
 
             <button
                 type="button"
                 onclick="closeJobModal()"
-                class="text-stone-400 hover:text-stone-700 text-xl"
+                class="text-stone-400
+                       hover:text-stone-700 text-xl"
+                aria-label="닫기"
             >
                 ×
             </button>
@@ -496,15 +446,25 @@
         </div>
 
 
-        <!-- 입력 폼 -->
-        <form id="job-form" class="space-y-4">
+        <!--
+            app.py의 /jobs POST로 전송
+        -->
+        <form
+            id="job-form"
+            method="POST"
+            action="{{ url_for('jobs') }}"
+            class="space-y-4"
+        >
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
+                <!-- 기업명 -->
                 <div>
+
                     <label
                         for="company_name"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         기업명 *
                     </label>
@@ -514,18 +474,23 @@
                         id="company_name"
                         name="company_name"
                         required
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        placeholder="예: 삼성물산"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
+
                 </div>
 
 
+                <!-- 채용공고명 -->
                 <div>
+
                     <label
                         for="job_title"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         채용공고명 *
                     </label>
@@ -535,18 +500,23 @@
                         id="job_title"
                         name="job_title"
                         required
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        placeholder="예: 2026 신입사원 채용"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
+
                 </div>
 
 
+                <!-- 지원 직무 -->
                 <div>
+
                     <label
                         for="position"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         지원 직무 *
                     </label>
@@ -556,18 +526,23 @@
                         id="position"
                         name="position"
                         required
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        placeholder="예: 해외영업"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
+
                 </div>
 
 
+                <!-- 직무 카테고리 -->
                 <div>
+
                     <label
                         for="job_category"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         직무 카테고리
                     </label>
@@ -575,25 +550,48 @@
                     <select
                         id="job_category"
                         name="job_category"
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
-                        <option value="">선택</option>
-                        <option value="해외영업">해외영업</option>
-                        <option value="구매">구매</option>
-                        <option value="무역">무역</option>
-                        <option value="물류">물류</option>
-                        <option value="기타">기타</option>
+
+                        <option value="">
+                            선택해주세요
+                        </option>
+
+                        <option value="해외영업">
+                            해외영업
+                        </option>
+
+                        <option value="구매">
+                            구매
+                        </option>
+
+                        <option value="무역">
+                            무역
+                        </option>
+
+                        <option value="물류">
+                            물류
+                        </option>
+
+                        <option value="기타">
+                            기타
+                        </option>
+
                     </select>
+
                 </div>
 
 
+                <!-- 근무지 -->
                 <div>
+
                     <label
                         for="location"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         근무지
                     </label>
@@ -602,18 +600,23 @@
                         type="text"
                         id="location"
                         name="location"
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        placeholder="예: 서울"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
+
                 </div>
 
 
+                <!-- 지원 상태 -->
                 <div>
+
                     <label
                         for="status"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         지원 상태
                     </label>
@@ -621,26 +624,52 @@
                     <select
                         id="status"
                         name="status"
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
-                        <option value="관심">관심</option>
-                        <option value="지원 예정">지원 예정</option>
-                        <option value="지원 완료">지원 완료</option>
-                        <option value="서류 합격">서류 합격</option>
-                        <option value="면접 진행">면접 진행</option>
-                        <option value="최종 합격">최종 합격</option>
-                        <option value="불합격">불합격</option>
+
+                        <option value="관심">
+                            관심
+                        </option>
+
+                        <option value="지원 예정">
+                            지원 예정
+                        </option>
+
+                        <option value="지원 완료">
+                            지원 완료
+                        </option>
+
+                        <option value="서류 합격">
+                            서류 합격
+                        </option>
+
+                        <option value="면접 진행">
+                            면접 진행
+                        </option>
+
+                        <option value="최종 합격">
+                            최종 합격
+                        </option>
+
+                        <option value="불합격">
+                            불합격
+                        </option>
+
                     </select>
+
                 </div>
 
 
+                <!-- 공고 등록일 -->
                 <div>
+
                     <label
                         for="posted_date"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         공고 등록일
                     </label>
@@ -649,18 +678,22 @@
                         type="date"
                         id="posted_date"
                         name="posted_date"
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
+
                 </div>
 
 
+                <!-- 지원 마감일 -->
                 <div>
+
                     <label
                         for="deadline"
-                        class="block text-xs font-semibold text-stone-600 mb-1"
+                        class="block text-xs font-semibold
+                               text-stone-600 mb-1"
                     >
                         지원 마감일 *
                     </label>
@@ -670,20 +703,28 @@
                         id="deadline"
                         name="deadline"
                         required
-                        class="w-full text-xs px-3 py-2 rounded-lg
-                               border border-stone-300 bg-white
-                               focus:outline-none focus:ring-1
-                               focus:ring-emerald-500"
+                        class="w-full text-xs px-3 py-2
+                               rounded-lg border border-stone-300
+                               bg-white focus:outline-none
+                               focus:ring-1 focus:ring-emerald-500"
                     >
+
+                    <p class="text-[10px] text-stone-400 mt-1">
+                        캘린더의 채용공고 마감 일정과 연동되는 날짜입니다.
+                    </p>
+
                 </div>
 
             </div>
 
 
+            <!-- 채용공고 URL -->
             <div>
+
                 <label
                     for="job_url"
-                    class="block text-xs font-semibold text-stone-600 mb-1"
+                    class="block text-xs font-semibold
+                           text-stone-600 mb-1"
                 >
                     채용공고 URL
                 </label>
@@ -693,18 +734,22 @@
                     id="job_url"
                     name="job_url"
                     placeholder="https://..."
-                    class="w-full text-xs px-3 py-2 rounded-lg
-                           border border-stone-300 bg-white
-                           focus:outline-none focus:ring-1
-                           focus:ring-emerald-500"
+                    class="w-full text-xs px-3 py-2
+                           rounded-lg border border-stone-300
+                           bg-white focus:outline-none
+                           focus:ring-1 focus:ring-emerald-500"
                 >
+
             </div>
 
 
+            <!-- 메모 -->
             <div>
+
                 <label
                     for="job_memo"
-                    class="block text-xs font-semibold text-stone-600 mb-1"
+                    class="block text-xs font-semibold
+                           text-stone-600 mb-1"
                 >
                     메모
                 </label>
@@ -713,30 +758,40 @@
                     id="job_memo"
                     name="memo"
                     rows="4"
-                    placeholder="공고와 관련된 메모를 작성해주세요."
-                    class="w-full text-xs px-3 py-2 rounded-lg
-                           border border-stone-300 bg-white
-                           resize-none focus:outline-none
+                    placeholder="자격요건, 준비할 내용 등을 자유롭게 적어보세요."
+                    class="w-full text-xs px-3 py-2
+                           rounded-lg border border-stone-300
+                           bg-white resize-none
+                           focus:outline-none
                            focus:ring-1 focus:ring-emerald-500"
                 ></textarea>
+
             </div>
 
 
+            <!-- 관심 공고 -->
             <label
-                class="flex items-center gap-2 text-xs text-stone-600"
+                class="flex items-center gap-2
+                       text-xs text-stone-600
+                       cursor-pointer"
             >
+
                 <input
                     type="checkbox"
+                    id="is_favorite"
                     name="is_favorite"
                     class="rounded border-stone-300
                            text-rose-500 focus:ring-0"
                 >
 
-                관심 공고로 표시
+                <span>
+                    ⭐ 관심 공고로 표시
+                </span>
+
             </label>
 
 
-            <!-- 모달 버튼 -->
+            <!-- 버튼 -->
             <div
                 class="flex justify-end gap-2
                        pt-4 border-t border-stone-200"
@@ -746,16 +801,25 @@
                     type="button"
                     onclick="closeJobModal()"
                     class="text-xs px-4 py-2
-                           text-stone-500 hover:text-stone-700"
+                           text-stone-500
+                           hover:text-stone-700"
                 >
                     취소
                 </button>
 
+
+                <!--
+                    submit하면 Flask /jobs POST 요청
+                    → DB 저장
+                    → /jobs로 redirect
+                -->
                 <button
                     type="submit"
-                    class="text-xs px-4 py-2 rounded-lg
-                           bg-emerald-700 hover:bg-emerald-800
-                           text-white font-bold shadow-sm transition"
+                    class="text-xs px-4 py-2
+                           rounded-lg bg-emerald-700
+                           hover:bg-emerald-800
+                           text-white font-bold
+                           shadow-sm transition"
                 >
                     저장
                 </button>
@@ -769,57 +833,51 @@
 </div>
 
 
-<!-- 현재는 UI 확인용 JavaScript -->
+<!-- =========================================
+     JOB POSTING 페이지 전용 JavaScript
+     현재는 공고 추가 모달 제어만 담당
+     ========================================= -->
 <script>
 
-    // 채용공고 추가 모달 열기
     function openJobModal() {
-        document
-            .getElementById('job-modal')
-            .classList
-            .remove('hidden');
+        const jobModal =
+            document.getElementById('job-modal');
+
+        jobModal.classList.remove('hidden');
     }
 
 
-    // 채용공고 추가 모달 닫기
     function closeJobModal() {
-        document
-            .getElementById('job-modal')
-            .classList
-            .add('hidden');
+        const jobModal =
+            document.getElementById('job-modal');
+
+        jobModal.classList.add('hidden');
     }
 
 
-    // 관심 버튼 토글
-    function toggleFavorite(button) {
-
-        if (button.innerText === '♡') {
-            button.innerText = '♥';
-            button.classList.remove('text-stone-300');
-            button.classList.add('text-rose-400');
-        } else {
-            button.innerText = '♡';
-            button.classList.remove('text-rose-400');
-            button.classList.add('text-stone-300');
-        }
-
-    }
-
-
-    // 현재 단계에서는 DB 저장 없이 UI만 확인
+    // 모달 바깥 영역을 누르면 닫기
     document
-        .getElementById('job-form')
-        .addEventListener('submit', function(event) {
+        .getElementById('job-modal')
+        .addEventListener('click', function(event) {
 
-            event.preventDefault();
+            if (event.target === this) {
+                closeJobModal();
+            }
 
-            alert(
-                '현재는 UI 확인 단계입니다. ' +
-                '다음 단계에서 Flask와 jobs 테이블에 연결합니다.'
-            );
-
-            closeJobModal();
         });
+
+
+    // ESC 키로 모달 닫기
+    document.addEventListener(
+        'keydown',
+        function(event) {
+
+            if (event.key === 'Escape') {
+                closeJobModal();
+            }
+
+        }
+    );
 
 </script>
 
