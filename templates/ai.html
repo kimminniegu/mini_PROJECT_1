@@ -1,0 +1,635 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- 05 AI / Prompt Generator -->
+
+<section>
+    <p class="text-xs font-bold text-violet-700 tracking-wider">
+        05 / AI
+    </p>
+
+    <h2 class="text-xl font-bold text-stone-800 mt-1">
+        🤖 AI 도우미
+    </h2>
+
+    <p class="text-xs text-stone-500 mt-1">
+        취업 준비에 활용할 수 있는 완성형 프롬프트를 만들어보세요.
+    </p>
+</section>
+
+
+<!-- 외부 AI 바로가기 -->
+<section class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+    <a
+        href="https://chatgpt.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="bg-emerald-50 hover:bg-emerald-100
+               border border-emerald-200 rounded-xl p-4 transition"
+    >
+        <p class="text-sm font-bold text-emerald-800">
+            ChatGPT →
+        </p>
+
+        <p class="text-xs text-stone-500 mt-1">
+            생성된 프롬프트를 활용해보세요.
+        </p>
+    </a>
+
+
+    <a
+        href="https://gemini.google.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="bg-blue-50 hover:bg-blue-100
+               border border-blue-200 rounded-xl p-4 transition"
+    >
+        <p class="text-sm font-bold text-blue-800">
+            Gemini →
+        </p>
+
+        <p class="text-xs text-stone-500 mt-1">
+            생성된 프롬프트를 활용해보세요.
+        </p>
+    </a>
+
+</section>
+
+
+<!-- API Key -->
+<section
+    class="bg-amber-50/50 border border-amber-200
+           rounded-xl p-4"
+>
+
+    <h3 class="text-sm font-bold text-amber-900">
+        🔑 OpenAI API Key
+    </h3>
+
+    <p class="text-xs text-stone-500 mt-1">
+        프롬프트 생성에 사용할 본인의 API Key를 입력해주세요.
+    </p>
+
+
+    <div class="flex gap-2 mt-3">
+
+        <input
+            type="password"
+            id="api_key"
+            placeholder="OpenAI API Key 입력"
+            autocomplete="off"
+            class="flex-1 text-xs px-3 py-2 rounded-lg
+                   border border-stone-300 bg-white
+                   focus:outline-none focus:ring-1
+                   focus:ring-amber-500"
+        >
+
+        <button
+            type="button"
+            id="toggle-api-key-button"
+            onclick="toggleApiKeyVisibility()"
+            class="text-xs px-3 py-2 rounded-lg
+                   bg-white border border-stone-300
+                   text-stone-600"
+        >
+            보기
+        </button>
+
+    </div>
+
+    <p class="text-[10px] text-stone-400 mt-2">
+        입력한 API Key는 DB나 브라우저 저장소에 저장하지 않고
+        현재 프롬프트 생성 요청에만 사용합니다.
+    </p>
+
+</section>
+
+
+<!-- 프리셋 -->
+<section
+    class="bg-white/80 border border-stone-200
+           rounded-xl p-4 shadow-sm"
+>
+
+    <h3 class="text-sm font-bold text-stone-700">
+        ✨ 추천 프롬프트
+    </h3>
+
+    <p class="text-xs text-stone-400 mt-1 mb-3">
+        원하는 취업 준비 유형을 선택해주세요.
+    </p>
+
+
+    <div class="flex flex-wrap gap-2">
+
+        <button
+            type="button"
+            onclick="selectPreset('cover_letter', this)"
+            class="preset-button text-xs bg-stone-100
+                   border border-stone-200 text-stone-600
+                   px-3 py-2 rounded-lg"
+        >
+            자기소개서 작성
+        </button>
+
+
+        <button
+            type="button"
+            onclick="selectPreset('cover_letter_review', this)"
+            class="preset-button text-xs bg-stone-100
+                   border border-stone-200 text-stone-600
+                   px-3 py-2 rounded-lg"
+        >
+            자기소개서 첨삭
+        </button>
+
+
+        <button
+            type="button"
+            onclick="selectPreset('company_analysis', this)"
+            class="preset-button text-xs bg-stone-100
+                   border border-stone-200 text-stone-600
+                   px-3 py-2 rounded-lg"
+        >
+            기업분석
+        </button>
+
+
+        <button
+            type="button"
+            onclick="selectPreset('job_analysis', this)"
+            class="preset-button text-xs bg-stone-100
+                   border border-stone-200 text-stone-600
+                   px-3 py-2 rounded-lg"
+        >
+            직무분석
+        </button>
+
+
+        <button
+            type="button"
+            onclick="selectPreset('interview_questions', this)"
+            class="preset-button text-xs bg-stone-100
+                   border border-stone-200 text-stone-600
+                   px-3 py-2 rounded-lg"
+        >
+            면접 예상질문
+        </button>
+
+
+        <button
+            type="button"
+            onclick="selectPreset('star_answer', this)"
+            class="preset-button text-xs bg-stone-100
+                   border border-stone-200 text-stone-600
+                   px-3 py-2 rounded-lg"
+        >
+            STAR 답변
+        </button>
+
+
+        <button
+            type="button"
+            onclick="selectPreset('follow_up', this)"
+            class="preset-button text-xs bg-stone-100
+                   border border-stone-200 text-stone-600
+                   px-3 py-2 rounded-lg"
+        >
+            면접 꼬리질문
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- 사용자 요청 -->
+<section
+    class="bg-white/80 border border-stone-200
+           rounded-xl p-4 shadow-sm"
+>
+
+    <div class="flex justify-between items-start gap-3 mb-3">
+
+        <div>
+            <h3 class="text-sm font-bold text-stone-700">
+                📝 무엇을 준비하고 있나요?
+            </h3>
+
+            <p class="text-xs text-stone-400 mt-1">
+                기업, 직무, 경험 등을 구체적으로 입력해주세요.
+            </p>
+        </div>
+
+
+        <span
+            id="selected-preset-label"
+            class="hidden text-[11px]
+                   bg-violet-50 border border-violet-200
+                   text-violet-700 px-2 py-1 rounded-full"
+        >
+        </span>
+
+    </div>
+
+
+    <input
+        type="hidden"
+        id="prompt_type"
+        value=""
+    >
+
+
+    <textarea
+        id="user_request"
+        rows="7"
+        placeholder="예: 해외영업 직무 자기소개서를 준비하고 있어요. 교환학생 경험을 강조하고 싶어요."
+        class="w-full text-sm px-3 py-3 rounded-lg
+               border border-stone-300 bg-amber-50/20
+               resize-none focus:outline-none
+               focus:ring-1 focus:ring-violet-500"
+    ></textarea>
+
+
+    <div class="flex justify-end mt-3">
+
+        <button
+            type="button"
+            id="generate-button"
+            onclick="generatePrompt()"
+            class="bg-violet-700 hover:bg-violet-800
+                   text-white text-xs font-bold
+                   px-4 py-2 rounded-lg"
+        >
+            ✨ 프롬프트 생성
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- 결과 -->
+<section
+    class="bg-violet-50/40
+           border border-violet-200
+           rounded-xl p-4"
+>
+
+    <div class="flex justify-between items-center mb-3">
+
+        <div>
+            <h3 class="text-sm font-bold text-violet-900">
+                📋 생성된 프롬프트
+            </h3>
+
+            <p class="text-xs text-stone-400 mt-1">
+                아래 내용을 복사해서 ChatGPT 또는 Gemini에 사용하세요.
+            </p>
+        </div>
+
+
+        <button
+            type="button"
+            onclick="copyPrompt()"
+            class="text-xs px-3 py-1.5 rounded-lg
+                   bg-white border border-violet-200
+                   text-violet-700"
+        >
+            📋 복사
+        </button>
+
+    </div>
+
+
+    <div
+        id="prompt-status"
+        class="hidden text-xs mb-3 px-3 py-2 rounded-lg"
+    >
+    </div>
+
+
+    <textarea
+        id="generated_prompt"
+        rows="16"
+        readonly
+        placeholder="생성된 프롬프트가 여기에 표시됩니다."
+        class="w-full text-xs leading-relaxed
+               px-3 py-3 rounded-lg
+               border border-violet-200
+               bg-white resize-none
+               text-stone-700"
+    ></textarea>
+
+</section>
+
+
+<script>
+
+    const presetNames = {
+        cover_letter: '자기소개서 작성',
+        cover_letter_review: '자기소개서 첨삭',
+        company_analysis: '기업분석',
+        job_analysis: '직무분석',
+        interview_questions: '면접 예상질문',
+        star_answer: 'STAR 답변',
+        follow_up: '면접 꼬리질문'
+    };
+
+
+    function selectPreset(promptType, button) {
+
+        document.getElementById('prompt_type').value =
+            promptType;
+
+        const label =
+            document.getElementById(
+                'selected-preset-label'
+            );
+
+        label.innerText =
+            presetNames[promptType];
+
+        label.classList.remove('hidden');
+
+
+        document
+            .querySelectorAll('.preset-button')
+            .forEach(function(item) {
+
+                item.classList.remove(
+                    'bg-violet-100',
+                    'border-violet-300',
+                    'text-violet-800',
+                    'font-bold'
+                );
+
+                item.classList.add(
+                    'bg-stone-100',
+                    'border-stone-200',
+                    'text-stone-600'
+                );
+
+            });
+
+
+        button.classList.remove(
+            'bg-stone-100',
+            'border-stone-200',
+            'text-stone-600'
+        );
+
+        button.classList.add(
+            'bg-violet-100',
+            'border-violet-300',
+            'text-violet-800',
+            'font-bold'
+        );
+
+    }
+
+
+    function toggleApiKeyVisibility() {
+
+        const input =
+            document.getElementById('api_key');
+
+        const button =
+            document.getElementById(
+                'toggle-api-key-button'
+            );
+
+
+        if (input.type === 'password') {
+
+            input.type = 'text';
+            button.innerText = '숨기기';
+
+        } else {
+
+            input.type = 'password';
+            button.innerText = '보기';
+
+        }
+
+    }
+
+
+    function showStatus(message, type) {
+
+        const status =
+            document.getElementById(
+                'prompt-status'
+            );
+
+        status.className =
+            'text-xs mb-3 px-3 py-2 rounded-lg';
+
+
+        if (type === 'success') {
+
+            status.classList.add(
+                'bg-emerald-50',
+                'text-emerald-700',
+                'border',
+                'border-emerald-200'
+            );
+
+        } else {
+
+            status.classList.add(
+                'bg-rose-50',
+                'text-rose-700',
+                'border',
+                'border-rose-200'
+            );
+
+        }
+
+
+        status.innerText = message;
+
+    }
+
+
+    async function generatePrompt() {
+
+        const apiKey =
+            document
+                .getElementById('api_key')
+                .value
+                .trim();
+
+        const promptType =
+            document
+                .getElementById('prompt_type')
+                .value;
+
+        const userRequest =
+            document
+                .getElementById('user_request')
+                .value
+                .trim();
+
+        const generateButton =
+            document.getElementById(
+                'generate-button'
+            );
+
+
+        if (!apiKey) {
+
+            alert(
+                'OpenAI API Key를 입력해주세요.'
+            );
+
+            return;
+
+        }
+
+
+        if (!promptType) {
+
+            alert(
+                '프롬프트 유형을 선택해주세요.'
+            );
+
+            return;
+
+        }
+
+
+        if (!userRequest) {
+
+            alert(
+                '취업 준비 내용을 입력해주세요.'
+            );
+
+            return;
+
+        }
+
+
+        generateButton.disabled = true;
+        generateButton.innerText =
+            '생성 중...';
+
+
+        try {
+
+            const response = await fetch(
+                "{{ url_for('generate_prompt') }}",
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body: JSON.stringify({
+                        api_key: apiKey,
+                        prompt_type: promptType,
+                        user_request: userRequest
+                    })
+                }
+            );
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                showStatus(
+                    result.message ||
+                    '프롬프트 생성에 실패했습니다.',
+                    'error'
+                );
+
+                return;
+
+            }
+
+
+            document
+                .getElementById(
+                    'generated_prompt'
+                )
+                .value =
+                    result.prompt;
+
+
+            showStatus(
+                '프롬프트가 생성되었습니다.',
+                'success'
+            );
+
+
+        } catch (error) {
+
+            showStatus(
+                '서버 연결 중 오류가 발생했습니다.',
+                'error'
+            );
+
+        } finally {
+
+            generateButton.disabled = false;
+
+            generateButton.innerText =
+                '✨ 프롬프트 생성';
+
+        }
+
+    }
+
+
+    async function copyPrompt() {
+
+        const prompt =
+            document
+                .getElementById(
+                    'generated_prompt'
+                )
+                .value
+                .trim();
+
+
+        if (!prompt) {
+
+            alert(
+                '먼저 프롬프트를 생성해주세요.'
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            await navigator.clipboard.writeText(
+                prompt
+            );
+
+            alert(
+                '프롬프트를 복사했습니다!'
+            );
+
+        } catch (error) {
+
+            alert(
+                '복사에 실패했습니다.'
+            );
+
+        }
+
+    }
+
+</script>
+
+{% endblock %}
