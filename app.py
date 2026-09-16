@@ -2,6 +2,7 @@ import os
 import sqlite3
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for
+from openai import OpenAI
 
 app = Flask(__name__)
 DATABASE = "job_diary.db"
@@ -546,6 +547,159 @@ def ai():
         "05 AI",
         "05 AI / AI 도우미"
     )
+
+
+# ==========================================
+# 05 AI / 취업용 Prompt Generator API
+# ==========================================
+@app.route("/api/generate-prompt", methods=["POST"])
+def generate_prompt():
+    """사용자의 요청을 바탕으로 취업용 완성형 프롬프트를 생성합니다."""
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "message": "요청 데이터가 없습니다."
+        }), 400
+
+    api_key = data.get(
+        "api_key",
+        ""
+    ).strip()
+
+    prompt_type = data.get(
+        "prompt_type",
+        ""
+    ).strip()
+
+    user_request = data.get(
+        "user_request",
+        ""
+    ).strip()
+
+    if not api_key:
+        return jsonify({
+            "success": False,
+            "message": "OpenAI API Key를 입력해주세요."
+        }), 400
+
+    if not prompt_type:
+        return jsonify({
+            "success": False,
+            "message": "프롬프트 유형을 선택해주세요."
+        }), 400
+
+    if not user_request:
+        return jsonify({
+            "success": False,
+            "message": "취업 준비 내용을 입력해주세요."
+        }), 400
+
+    prompt_type_names = {
+        "cover_letter": "자기소개서 작성",
+        "cover_letter_review": "자기소개서 첨삭",
+        "company_analysis": "기업분석",
+        "job_analysis": "직무분석",
+        "interview_questions": "면접 예상질문",
+        "star_answer": "STAR 답변",
+        "follow_up": "면접 꼬리질문"
+    }
+
+    prompt_type_name = prompt_type_names.get(
+        prompt_type
+    )
+
+    if not prompt_type_name:
+        return jsonify({
+            "success": False,
+            "message": "올바르지 않은 프롬프트 유형입니다."
+        }), 400
+
+    system_instruction = """
+당신은 취업용 Prompt Generator입니다.
+
+사용자의 취업 준비 결과물을 직접 대신 작성하지 말고,
+사용자가 ChatGPT 또는 Gemini에 복사해서 사용할 수 있는
+완성형 프롬프트를 생성해야 합니다.
+
+생성하는 프롬프트에는 가능한 경우 다음 내용을 포함하세요.
+
+1. AI가 수행할 역할
+2. 지원 기업
+3. 지원 직무
+4. 사용자가 제공한 경험과 정보
+5. 수행할 작업
+6. 출력 형식
+7. 작성 조건
+8. 확인되지 않은 정보를 만들지 말라는 조건
+9. 정보가 부족하면 추가 질문을 하라는 조건
+
+사용자가 제공하지 않은 경험, 성과, 숫자 또는 사실은
+임의로 만들어내지 마세요.
+
+설명이나 인사말 없이
+사용자가 바로 복사해서 사용할 수 있는
+프롬프트만 출력하세요.
+""".strip()
+
+    generation_request = f"""
+프롬프트 유형:
+{prompt_type_name}
+
+사용자의 취업 준비 내용:
+{user_request}
+
+위 정보를 바탕으로
+'{prompt_type_name}' 작업에 사용할 수 있는
+완성형 취업 프롬프트를 만들어주세요.
+
+사용자는 생성된 프롬프트를
+ChatGPT 또는 Gemini에 그대로 복사해서 사용할 예정입니다.
+""".strip()
+
+    try:
+        # 사용자가 입력한 API Key는 이 요청에서만 사용합니다.
+        # DB나 파일에는 저장하지 않습니다.
+        client = OpenAI(
+            api_key=api_key
+        )
+
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            instructions=system_instruction,
+            input=generation_request
+        )
+
+        generated_prompt = (
+            response.output_text or ""
+        ).strip()
+
+        if not generated_prompt:
+            return jsonify({
+                "success": False,
+                "message": "생성된 프롬프트가 없습니다."
+            }), 500
+
+        return jsonify({
+            "success": True,
+            "prompt": generated_prompt
+        })
+
+    except Exception as error:
+        # API Key 자체는 로그에 출력하지 않습니다.
+        print(
+            "OpenAI API 호출 오류:",
+            type(error).__name__
+        )
+
+        return jsonify({
+            "success": False,
+            "message":
+                "OpenAI API 호출에 실패했습니다. "
+                "API Key 또는 API 사용 상태를 확인해주세요."
+        }), 500
 
 
 # ==========================================
