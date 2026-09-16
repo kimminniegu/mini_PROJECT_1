@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 03 REVIEW 메인 컨테이너 -->
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- 다이어리 헤더 & 컨트롤 영역 -->
+  <div class="bg-[#FFFDF9] border-2 border-[#EADBC8] rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold px-2 py-0.5 bg-[#8D7B68] text-white rounded">03</span>
+        <h2 class="text-xl font-bold text-[#4A4036] tracking-tight">REVIEW / 내용복기 ✏️</h2>
+      </div>
+      <p class="text-xs text-[#8D7B68] mt-1">면접, 자소서 결과를 기록하고 KPT 오답노트로 성장해요.</p>
+    </div>
+
+    <!-- 액션 버튼 -->
+    <div class="flex items-center gap-2">
+      <button type="button" onclick="openReviewModal()" class="px-4 py-2 bg-[#8D7B68] hover:bg-[#6D5D4E] text-white text-sm font-semibold rounded-xl shadow-sm transition">
+        ＋ 복기 추가
+      </button>
+    </div>
+  </div>
+
+  <!-- 전형 구분 필터 탭 -->
+  <div class="flex flex-wrap gap-2 text-xs font-medium">
+    <a href="/review" class="px-3 py-1.5 rounded-full border border-[#D8C4B6] {% if not current_type %}bg-[#8D7B68] text-white{% else %}bg-white text-[#6B5E52] hover:bg-[#F9F5F0]{% endif %} transition">
+      전체 보기
+    </a>
+    {% set types = ['서류전형', '자기소개서', '인적성', '1차 면접', '2차 면접', '최종 면접', '기타'] %}
+    {% for type_name in types %}
+      <a href="/review?type={{ type_name }}" class="px-3 py-1.5 rounded-full border border-[#D8C4B6] {% if current_type == type_name %}bg-[#8D7B68] text-white{% else %}bg-white text-[#6B5E52] hover:bg-[#F9F5F0]{% endif %} transition">
+        {{ type_name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- 복기 카드 리스트 -->
+  <div class="space-y-6">
+    {% if reviews %}
+      {% for review in reviews %}
+        <div class="bg-[#FFFDF9] border-2 border-[#EADBC8] rounded-2xl p-6 shadow-sm relative overflow-hidden">
+          <!-- 상단 태그 및 기업 정보 -->
+          <div class="flex items-start justify-between border-b border-[#F0E5D8] pb-3 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold px-2 py-0.5 bg-[#F5EBE0] text-[#6D5D4E] border border-[#D8C4B6] rounded">
+                  {{ review.review_type }}
+                </span>
+                <span class="text-xs px-2 py-0.5 rounded font-bold
+                  {% if review.result == '합격' %}bg-green-100 text-green-700
+                  {% elif review.result == '불합격' %}bg-red-100 text-red-600
+                  {% else %}bg-amber-100 text-amber-700{% endif %}">
+                  {{ review.result or '진행중' }}
+                </span>
+              </div>
+              <h3 class="text-lg font-bold text-[#4A4036] mt-2">{{ review.company_name }} <span class="text-sm font-normal text-[#8D7B68]">| {{ review.position }}</span></h3>
+              <p class="text-xs text-[#A89F91] mt-0.5">전형일: {{ review.interview_date or review.apply_date or '미기재' }}</p>
+            </div>
+
+            <!-- 관리 버튼 -->
+            <div class="flex items-center gap-2">
+              <form action="/review/delete/{{ review.id }}" method="POST" onsubmit="return confirm('정말 이 복기 기록을 삭제할까요?');">
+                <button type="submit" class="text-xs text-[#C88A8A] hover:underline">삭제</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- 질문 및 내 답변 영역 -->
+          {% if review.question or review.answer %}
+            <div class="mb-4 bg-[#FBF8F2] border border-[#EFE4D6] rounded-xl p-4">
+              {% if review.question %}
+                <p class="text-sm font-bold text-[#54483C] mb-1">Q. {{ review.question }}</p>
+              {% endif %}
+              {% if review.answer %}
+                <div class="text-xs text-[#6B5E52] whitespace-pre-line pl-2 border-l-2 border-[#D8C4B6]">
+                  {{ review.answer }}
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <!-- 자소서 문항/제출 내용 (자소서 유형일 경우) -->
+          {% if review.submitted_content %}
+            <div class="mb-4 bg-[#FBF8F2] border border-[#EFE4D6] rounded-xl p-4 text-xs text-[#6B5E52]">
+              <span class="font-bold block text-[#54483C] mb-1">제출 내용 및 피드백</span>
+              <p class="whitespace-pre-line">{{ review.submitted_content }}</p>
+              {% if review.feedback %}
+                <div class="mt-2 pt-2 border-t border-[#EAE0D2] text-[#8D7B68]">
+                  💬 <strong>받은 피드백:</strong> {{ review.feedback }}
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <!-- KPT Self Evaluation (다이어리 스티커 스타일) -->
+          <div class="mt-4 pt-3 border-t border-dashed border-[#E0D3C5]">
+            <h4 class="text-xs font-bold text-[#8D7B68] mb-2 flex items-center gap-1">
+              ⭐ Self Evaluation (오답노트)
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <!-- Keep -->
+              <div class="bg-[#F0F5EC] border border-[#D5E2CD] rounded-lg p-3">
+                <strong class="text-[#4F6F52] block mb-1">Keep (잘한 점)</strong>
+                <p class="text-[#556B2F] whitespace-pre-line">{{ review.keep_point or '-' }}</p>
+              </div>
+              <!-- Problem -->
+              <div class="bg-[#FBF1F1] border border-[#EED7D7] rounded-lg p-3">
+                <strong class="text-[#A25757] block mb-1">Problem (아쉬운 점)</strong>
+                <p class="text-[#8B0000] whitespace-pre-line">{{ review.problem_point or '-' }}</p>
+              </div>
+              <!-- Try -->
+              <div class="bg-[#FDF6ED] border border-[#EFE1CC] rounded-lg p-3">
+                <strong class="text-[#B97A57] block mb-1">Try (개선할 점)</strong>
+                <p class="text-[#8B5A2B] whitespace-pre-line">{{ review.try_point or '-' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <!-- 등록된 내용이 없을 때 -->
+      <div class="bg-[#FFFDF9] border-2 border-dashed border-[#EADBC8] rounded-2xl p-12 text-center text-[#A89F91]">
+        <p class="text-base font-semibold mb-1">아직 등록된 복기 기록이 없어요 📖</p>
+        <p class="text-xs mb-4">면접이나 서류 전형의 경험을 기록해 다음 기회를 준비해 보세요.</p>
+        <button type="button" onclick="openReviewModal()" class="px-4 py-2 bg-[#8D7B68] hover:bg-[#6D5D4E] text-white text-xs font-semibold rounded-xl">
+          첫 복기 작성하기
+        </button>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 복기 등록 모달 (CYWORLD DIARY MODAL) -->
+<div id="reviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs hidden p-4">
+  <div class="bg-[#FFFDF9] border-2 border-[#CBB8A9] rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 shadow-xl">
+    <div class="flex items-center justify-between border-b border-[#EAE0D2] pb-3 mb-4">
+      <h3 class="text-base font-bold text-[#4A4036]">✏️ 취업 활동 복기 작성</h3>
+      <button type="button" onclick="closeReviewModal()" class="text-[#8D7B68] hover:text-black font-bold text-lg">&times;</button>
+    </div>
+
+    <form action="/review/add" method="POST" class="space-y-4 text-xs text-[#54483C]">
+      <!-- 기본 정보 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="font-bold block mb-1">기업명 *</label>
+          <input type="text" name="company_name" required placeholder="예: 삼성전자, 토스" class="w-full border border-[#D8C4B6] rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+        </div>
+        <div>
+          <label class="font-bold block mb-1">지원 직무 *</label>
+          <input type="text" name="position" required placeholder="예: 해외영업, 백엔드 개발" class="w-full border border-[#D8C4B6] rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label class="font-bold block mb-1">전형 종류 *</label>
+          <select name="review_type" class="w-full border border-[#D8C4B6] rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]">
+            <option value="1차 면접">1차 면접</option>
+            <option value="2차 면접">2차 면접</option>
+            <option value="최종 면접">최종 면접</option>
+            <option value="자기소개서">자기소개서</option>
+            <option value="서류전형">서류전형</option>
+            <option value="인적성">인적성</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-bold block mb-1">진행 일자</label>
+          <input type="date" name="interview_date" class="w-full border border-[#D8C4B6] rounded-lg p-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+        </div>
+        <div>
+          <label class="font-bold block mb-1">전형 결과</label>
+          <select name="result" class="w-full border border-[#D8C4B6] rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]">
+            <option value="진행중">진행중</option>
+            <option value="합격">합격</option>
+            <option value="불합격">불합격</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 면접/자소서 내용 -->
+      <div>
+        <label class="font-bold block mb-1">주요 질문 / 자소서 문항</label>
+        <input type="text" name="question" placeholder="가장 기억에 남는 질문 또는 문항" class="w-full border border-[#D8C4B6] rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+      </div>
+
+      <div>
+        <label class="font-bold block mb-1">나의 답변 / 작성 내용</label>
+        <textarea name="answer" rows="3" placeholder="당시 실제로 했던 답변 내용" class="w-full border border-[#D8C4B6] rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]"></textarea>
+      </div>
+
+      <div>
+        <label class="font-bold block mb-1">받은 피드백</label>
+        <input type="text" name="feedback" placeholder="면접관 반응이나 전달받은 피드백이 있다면 적어주세요" class="w-full border border-[#D8C4B6] rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+      </div>
+
+      <!-- KPT 셀프 피드백 -->
+      <div class="pt-2 border-t border-[#EAE0D2]">
+        <span class="font-bold block text-[#8D7B68] mb-2">⭐ 오답노트 (KPT 분석)</span>
+        <div class="space-y-2">
+          <input type="text" name="keep_point" placeholder="Keep: 잘한 점 (유지할 부분)" class="w-full border border-[#D8C4B6] rounded-lg p-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+          <input type="text" name="problem_point" placeholder="Problem: 아쉬웠던 점 (부족했던 답변 등)" class="w-full border border-[#D8C4B6] rounded-lg p-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+          <input type="text" name="try_point" placeholder="Try: 다음을 위해 보완할 구체적 행동" class="w-full border border-[#D8C4B6] rounded-lg p-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#8D7B68]" />
+        </div>
+      </div>
+
+      <!-- 제출 및 취소 버튼 -->
+      <div class="flex justify-end gap-2 pt-4 border-t border-[#EAE0D2]">
+        <button type="button" onclick="closeReviewModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition">
+          닫기
+        </button>
+        <button type="submit" class="px-5 py-2 bg-[#8D7B68] hover:bg-[#6D5D4E] text-white font-semibold rounded-xl shadow-sm transition">
+          저장하기
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 모달 제어 스크립트 -->
+<script>
+  function openReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    if (modal) modal.classList.add('hidden');
+  }
+</script>
+{% endblock %}
